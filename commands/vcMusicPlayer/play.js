@@ -1,6 +1,5 @@
 const { SlashCommandBuilder } = require('discord.js');
-const { MessageEmbed } = require('discord.js');
-const { QueryType } = require('discord-player');
+const { EmbedBuilder } = require('discord.js');
 
 module.exports = {
     data: new SlashCommandBuilder()
@@ -17,52 +16,39 @@ module.exports = {
                 )
         ),
     async execute(interaction) {
-        if(!interaction.memeber.voice.channel) {
+        const channel = interaction.member.voice.channel;
+        if(!channel) {
             await interaction.reply("You must be in a vc to use this command.");
             return;
         } 
         
-        const queue = await interaction.client.player.createQueue(interaction.guild);
 
-        if(!queue.connection) await queue.connect(interaction.memeber.voice.channel);
 
-        let embed = new MessageEmbed();
 
-        switch(interaction.option.getSubcommand()){
-            case 'search': 
-                let url = interaction.options.getString('url');
+        if(interaction.options.getSubcommand() === 'search'){
+            let url = interaction.options.getString('searchterms');
+            const { track } = await interaction.client.player.play(channel.id,url);
 
-                const result = await client.player.search(url, {
-                    requestedBy: interaction.user,
-                    searchEngine: QueryType.YOUTUBE_VIDEO,
-                });
-                break;
-            default:
-                await interaction.reply('Incorrect option');
-                return;
-        }
+            // , {nodeOptions: {
+            //     metadata:{
+            //     requestedBy: interaction.user,
+            //     searchEngine: QueryType.YOUTUBE_VIDEO,
+            //     }
+            // }}
 
-        if(interaction.option.getSubcommand() === 'search'){
-            let url = interaction.options.getString('url');
 
-            const result = await client.player.search(url, {
-                requestedBy: interaction.user,
-                searchEngine: QueryType.YOUTUBE_VIDEO,
-            });
+            // if(result.tracks.length === 0){
+            //     await interaction.reply('No results found!');
+            //     return;
+            // }
 
-            if(result.tracks.length === 0){
-                await interaction.reply('No results found!');
-                return;
-            }
+            // const song = result.tracks[0];
 
-            const song = result.tracks[0];
+            // await query.addTrack(song);
 
-            await queue.addTrack(song);
-
-            embed
+            let embed = new EmbedBuilder()
                 .setTitle('New song appeared!')
-                .setDescription(`Added "${song.title}" to the queue. `)
-                .setThumbnail(song.thumbnail)
+                .setDescription(`Added "${track.title}" to the query. `)
                 .setColor([50,50,50])
             await interaction.reply({embeds: [embed]});
         }

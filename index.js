@@ -6,7 +6,7 @@ const { Player } = require('discord-player');
 
 const client = new Client({ intents: [GatewayIntentBits.Guilds, GatewayIntentBits.GuildVoiceStates] });
 client.commands = new Collection();
-const clientPlayer = new Player(client, {
+client.player = new Player(client, {
 	ytdlOptions: {
 		quality: "higestaudio",
 		highWaterMark: 1 << 25
